@@ -1,60 +1,74 @@
  package corteDos.actividad1;
 
+import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.Toast;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 
-import androidx.activity.EdgeToEdge;
+
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
 
  public class MainActivity extends AppCompatActivity {
-     
-     RecyclerView lista;
+
+    ListView lista;
+     ArrayList<String> listaItems = new ArrayList<>();
+     ProgressBar barra;
 
 
+     @SuppressLint("MissingInflatedId")
      @Override
      protected void onCreate(Bundle savedInstanceState) {
          super.onCreate(savedInstanceState);
          setContentView(R.layout.activity_main);
-         lista= (RecyclerView) findViewById(R.id.RecyclerView1);
-         new BackgroundTask().execute();
+         lista= (ListView) findViewById(R.id.ListView1);
+         barra = findViewById(R.id.ProgressBarra);
+         llenarLista();
 
      }
 
-     private class BackgroundTask extends AsyncTask<String,Integer,String> {
+     public void llenarLista() {
+         new ClaseAsincrona().execute();
+     }
+     private class ClaseAsincrona extends AsyncTask<Void, Void, ArrayList<String>> {
 
          @Override
-         protected String doInBackground(String... strings) {
-
-             int contador = 10;
-             for(int i=0; i<10; i++ ){
-
+         protected ArrayList<String> doInBackground(Void... voids) {
+             int tiempo = 600;
+             ArrayList<String> CargarLista= new ArrayList<>();
+             for (int i = 0; i < 10; i++) {
+                 CargarLista.add("Objeto" + i);
+                 publishProgress(); // Notificar el progreso
                  try {
-                     Thread.sleep(6000);
-                     Log.e("Progreso: ",""+i);
-                 } catch (InterruptedException e) {
-                     throw new RuntimeException(e);
+                     Thread.sleep(tiempo);
+
+                 }catch (InterruptedException e) {
+                     e.printStackTrace();
                  }
              }
-             return "se termino la tarea en back";
+             return CargarLista;
          }
 
          @Override
-         protected void onProgressUpdate(Integer... values) {
+         protected void onProgressUpdate(Void... values) {
              super.onProgressUpdate(values);
+             barra.incrementProgressBy(10);
          }
 
          @Override
-         protected void onPostExecute(String s) {
-
-             Toast.makeText(MainActivity.this, "Termino la tarea en doBack", Toast.LENGTH_SHORT).show();
-             Log.e("Terminados",""+s);
-             super.onPostExecute(s);
+         protected void onPostExecute(ArrayList<String> strings) {
+             super.onPostExecute(strings);
+             listaItems = strings;
+             ArrayAdapter<String> adaptadorLista = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_checked, listaItems);
+             lista.setAdapter(adaptadorLista);
          }
      }
-}
+
+     @Override
+     protected void onDestroy() {
+         super.onDestroy();
+     }
+ }
